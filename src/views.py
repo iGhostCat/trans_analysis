@@ -8,7 +8,8 @@ from dotenv import load_dotenv
 
 
 load_dotenv("../.env")
-API_KEY = os.getenv("API_KEY")
+API_KEY_EXCHANGE_RATES = os.getenv("API_KEY_EXCHANGE_RATES")
+API_KEY_FIN_MODELING = os.getenv("API_KEY_FIN_MODELING")
 
 
 def excel_to_list_of_dicts(path_to_file):
@@ -73,11 +74,40 @@ def transactions_to_json(transactions):
 
 
 def sums_by_category(transactions_dataframe):
-    status_filtered = transactions_dataframe[transactions_dataframe['Статус'] == 'OK']
-    expenses_filtered = status_filtered[status_filtered['Сумма операции'] < 0]
-    cards_groups = expenses_filtered.groupby('Номер карты')
-    sum_by_category = cards_groups['Сумма операции с округлением'].sum()
-    return sum_by_category
+    """
+    Возвращает сумму трат и кэшбэка по последним 4 цифрам карт в JSON-формате
+
+    Args:
+        transactions_dataframe: DataFrame с транзакциями
+
+    Returns:
+        dict: Данные в формате {"cards": [...]}
+    """
+    # Фильтрация успешных операций и трат (отрицательные суммы) с созданием копии
+    status_filtered = transactions_dataframe[transactions_dataframe['Статус'] == 'OK'].copy()
+    expenses_filtered = status_filtered[status_filtered['Сумма операции'] < 0].copy()
+
+    # Извлечение последних 4 цифр номера карты
+    expenses_filtered.loc[:, 'last_digits'] = expenses_filtered['Номер карты'].str[-4:]
+
+    # Группировка и агрегация
+    cards_groups = expenses_filtered.groupby('last_digits').agg({
+        'Сумма операции с округлением': 'sum',
+        'Кэшбэк': 'sum'
+    }).reset_index()
+
+    # Преобразование в абсолютные значения (так как суммы трат отрицательные)
+    cards_groups['total_spent'] = cards_groups['Сумма операции с округлением'].abs()
+    cards_groups['cashback'] = cards_groups['Кэшбэк']
+
+    # Форматирование результата
+    result = {
+        "cards": cards_groups[['last_digits', 'total_spent', 'cashback']]
+        .rename(columns={'last_digits': 'last_digits'})  # исправлена опечатка в имени столбца
+        .to_dict('records')
+    }
+
+    return result
 
 trans_df = excel_to_dataframe("../data/test_operations.xlsx")
 print( sums_by_category(trans_df))
@@ -85,56 +115,50 @@ print( sums_by_category(trans_df))
 def top_transactions(transactions_df):
     sorted_df = transactions_df.sort_values(by='Сумма операции с округлением', ascending=False)
     top = []
-    for col, row in sorted_df[0:4].iterrows():
+    for _, row in sorted_df.head(5).iterrows():  # Берем топ-5 транзакций
         transaction = {
-            "Дата операции": row["Дата операции"],
-            "Дата платежа": row["Дата платежа"],
-            "Номер карты": row["Номер карты"],
-            "Статус": row["Статус"],
-            "Сумма операции": row["Сумма операции"],
-            "Валюта операции": row["Валюта операции"],
-            "Сумма платежа": row["Сумма платежа"],
-            "Валюта платежа": row["Валюта платежа"],
-            "Кэшбэк": row["Кэшбэк"],
-            "Категория": row["Категория"],
-            "MCC": row["MCC"],
-            "Описание": row["Описание"],
-            "Бонусы (включая кэшбэк)": row["Бонусы (включая кэшбэк)"],
-            "Округление на инвесткопилку": row["Округление на инвесткопилку"],
-            "Сумма операции с округлением": row["Сумма операции с округлением"],
+            "date": row["Дата операции"],
+            "amount": row["Сумма операции"],
+            "category": row["Категория"],
+            "description": row["Описание"]
         }
         top.append(transaction)
-    return top
+    return {"top_transactions": top}
 
 print(top_transactions(trans_df))
 
-def currency_rates_api(currencies = None):
+
+def currency_rates_api(currencies_file):
     """
     Получает актуальные курсы валют к рублю из API ЦБ РФ
 
     Args:
-        currencies (list): Список валют для получения (например ['USD', 'EUR'])
-                           Если None, возвращает все доступные валюты
+        currencies_file (str): Путь к JSON-файлу с валютами
 
     Returns:
         list: Список словарей в формате [{"currency": "USD", "rate": 73.21}, ...]
     """
     try:
-        # Делаем запрос к API ЦБ РФ
+        # 1. Загружаем список валют из файла
+        with open(currencies_file, 'r') as f:
+            data = json.load(f)
+            currencies = data.get("user_currencies", [])  # Обратите внимание на имя ключа
+
+        # 2. Делаем запрос к API ЦБ РФ
         response = requests.get('https://www.cbr-xml-daily.ru/daily_json.js')
-        response.raise_for_status()  # Проверяем на ошибки
-        data = response.json()
+        response.raise_for_status()
+        api_data = response.json()
 
-        # Получаем данные по валютам
-        valutes = data['Valute']
+        # 3. Получаем данные по валютам
+        valutes = api_data['Valute']
 
-        # Фильтруем валюты, если задан список
-        if currencies is not None:
+        # 4. Фильтруем валюты по запрошенному списку
+        if currencies:  # Если список валют не пустой
             valutes = {code: v for code, v in valutes.items() if code in currencies}
 
-        # Формируем результат
+        # 5. Формируем результат
         result = [
-            {"currency": code, "rate": v['Value']}
+            {"currency": code, "rate": round(v['Value'], 2)}
             for code, v in valutes.items()
         ]
 
@@ -142,4 +166,40 @@ def currency_rates_api(currencies = None):
 
     except requests.exceptions.RequestException as e:
         raise Exception(f"Ошибка при получении курсов валют: {str(e)}")
-print(currency_rates_api(['USD', 'EUR']))
+    except (KeyError, json.JSONDecodeError) as e:
+        raise Exception(f"Ошибка обработки данных: {str(e)}")
+print(currency_rates_api("../user_settings.json"))
+
+
+def get_stock_prices(input_file, api_key):
+    """
+    Получает текущие цены акций из S&P500 по списку тикеров
+
+    """
+    # 1. Загружаем список тикеров из JSON-файла
+    with open(input_file, 'r') as f:
+        data = json.load(f)
+        tickers = data.get("user_stocks", [])
+
+    # 2. Делаем запрос к API для каждого тикера
+    stock_prices = []
+    base_url = "https://financialmodelingprep.com/api/v3/quote-short/"
+
+    for ticker in tickers:
+        try:
+            response = requests.get(f"{base_url}{ticker}?apikey={api_key}")
+            response.raise_for_status()
+            quote = response.json()[0]
+
+            stock_prices.append({
+                "stock": ticker,
+                "price": quote["price"]
+            })
+        except (requests.RequestException, IndexError, KeyError) as e:
+            print(f"Ошибка при получении данных для {ticker}: {str(e)}")
+            continue
+
+    # 3. Возвращаем результат в требуемом формате
+    return {"stock_prices": stock_prices}
+
+print(get_stock_prices("../user_settings.json", API_KEY_FIN_MODELING))
