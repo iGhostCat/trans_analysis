@@ -6,7 +6,6 @@ import pandas as pd
 import requests
 from dotenv import load_dotenv
 
-
 load_dotenv("../.env")
 API_KEY_EXCHANGE_RATES = os.getenv("API_KEY_EXCHANGE_RATES")
 API_KEY_FIN_MODELING = os.getenv("API_KEY_FIN_MODELING")
@@ -40,7 +39,7 @@ def excel_to_list_of_dicts(path_to_file):
 
 
 def excel_to_dataframe(path_to_file):
-    '''Функция преобразования таблицы xlsx в датафрейм pandas'''
+    """Функция преобразования таблицы xlsx в датафрейм pandas"""
     df = pd.read_excel(path_to_file, sheet_name="Отчет по операциям", header=0)
     return df
 
@@ -61,16 +60,11 @@ def transactions_to_json(transactions):
             return obj.strftime("%Y-%m-%d %H:%M:%S")
         raise TypeError(f"Object of type {type(obj)} is not JSON serializable")
 
-    return json.dumps(
-        transactions,
-        ensure_ascii=False,
-        indent=4,
-        default=default_serializer
-    )
+    return json.dumps(transactions, ensure_ascii=False, indent=4, default=default_serializer)
 
 
-#trans_list = excel_to_list_of_dicts("../data/test_operations.xlsx")
-#print(transactions_to_json(trans_list))
+# trans_list = excel_to_list_of_dicts("../data/test_operations.xlsx")
+# print(transactions_to_json(trans_list))
 
 
 def sums_by_category(transactions_dataframe):
@@ -83,49 +77,50 @@ def sums_by_category(transactions_dataframe):
     Returns:
         dict: Данные в формате {"cards": [...]}
     """
-    # Фильтрация успешных операций и трат (отрицательные суммы) с созданием копии
-    status_filtered = transactions_dataframe[transactions_dataframe['Статус'] == 'OK'].copy()
-    expenses_filtered = status_filtered[status_filtered['Сумма операции'] < 0].copy()
 
-    # Извлечение последних 4 цифр номера карты
-    expenses_filtered.loc[:, 'last_digits'] = expenses_filtered['Номер карты'].str[-4:]
+    status_filtered = transactions_dataframe[transactions_dataframe["Статус"] == "OK"].copy()
+    expenses_filtered = status_filtered[status_filtered["Сумма операции"] < 0].copy()
 
-    # Группировка и агрегация
-    cards_groups = expenses_filtered.groupby('last_digits').agg({
-        'Сумма операции с округлением': 'sum',
-        'Кэшбэк': 'sum'
-    }).reset_index()
+    expenses_filtered.loc[:, "last_digits"] = expenses_filtered["Номер карты"].str[-4:]
 
-    # Преобразование в абсолютные значения (так как суммы трат отрицательные)
-    cards_groups['total_spent'] = cards_groups['Сумма операции с округлением'].abs()
-    cards_groups['cashback'] = cards_groups['Кэшбэк']
+    cards_groups = (
+        expenses_filtered.groupby("last_digits")
+        .agg({"Сумма операции с округлением": "sum", "Кэшбэк": "sum"})
+        .reset_index()
+    )
+
+    cards_groups["total_spent"] = cards_groups["Сумма операции с округлением"].abs()
+    cards_groups["cashback"] = cards_groups["Кэшбэк"]
 
     # Форматирование результата
     result = {
-        "cards": cards_groups[['last_digits', 'total_spent', 'cashback']]
-        .rename(columns={'last_digits': 'last_digits'})  # исправлена опечатка в имени столбца
-        .to_dict('records')
+        "cards": cards_groups[["last_digits", "total_spent", "cashback"]]
+        .rename(columns={"last_digits": "last_digits"})
+        .to_dict("records")
     }
 
     return result
 
-trans_df = excel_to_dataframe("../data/test_operations.xlsx")
-print( sums_by_category(trans_df))
+
+# trans_df = excel_to_dataframe("../data/test_operations.xlsx")
+# print(sums_by_category(trans_df))
+
 
 def top_transactions(transactions_df):
-    sorted_df = transactions_df.sort_values(by='Сумма операции с округлением', ascending=False)
+    sorted_df = transactions_df.sort_values(by="Сумма операции с округлением", ascending=False)
     top = []
-    for _, row in sorted_df.head(5).iterrows():  # Берем топ-5 транзакций
+    for _, row in sorted_df.head(5).iterrows():
         transaction = {
             "date": row["Дата операции"],
             "amount": row["Сумма операции"],
             "category": row["Категория"],
-            "description": row["Описание"]
+            "description": row["Описание"],
         }
         top.append(transaction)
     return {"top_transactions": top}
 
-print(top_transactions(trans_df))
+
+# print(top_transactions(trans_df))
 
 
 def currency_rates_api(currencies_file):
@@ -140,27 +135,24 @@ def currency_rates_api(currencies_file):
     """
     try:
         # 1. Загружаем список валют из файла
-        with open(currencies_file, 'r') as f:
+        with open(currencies_file, "r") as f:
             data = json.load(f)
             currencies = data.get("user_currencies", [])  # Обратите внимание на имя ключа
 
         # 2. Делаем запрос к API ЦБ РФ
-        response = requests.get('https://www.cbr-xml-daily.ru/daily_json.js')
+        response = requests.get("https://www.cbr-xml-daily.ru/daily_json.js")
         response.raise_for_status()
         api_data = response.json()
 
         # 3. Получаем данные по валютам
-        valutes = api_data['Valute']
+        valutes = api_data["Valute"]
 
         # 4. Фильтруем валюты по запрошенному списку
         if currencies:  # Если список валют не пустой
             valutes = {code: v for code, v in valutes.items() if code in currencies}
 
         # 5. Формируем результат
-        result = [
-            {"currency": code, "rate": round(v['Value'], 2)}
-            for code, v in valutes.items()
-        ]
+        result = [{"currency": code, "rate": round(v["Value"], 2)} for code, v in valutes.items()]
 
         return result
 
@@ -168,7 +160,9 @@ def currency_rates_api(currencies_file):
         raise Exception(f"Ошибка при получении курсов валют: {str(e)}")
     except (KeyError, json.JSONDecodeError) as e:
         raise Exception(f"Ошибка обработки данных: {str(e)}")
-print(currency_rates_api("../user_settings.json"))
+
+
+# print(currency_rates_api("../user_settings.json"))
 
 
 def get_stock_prices(input_file, api_key):
@@ -177,7 +171,7 @@ def get_stock_prices(input_file, api_key):
 
     """
     # 1. Загружаем список тикеров из JSON-файла
-    with open(input_file, 'r') as f:
+    with open(input_file, "r") as f:
         data = json.load(f)
         tickers = data.get("user_stocks", [])
 
@@ -191,10 +185,7 @@ def get_stock_prices(input_file, api_key):
             response.raise_for_status()
             quote = response.json()[0]
 
-            stock_prices.append({
-                "stock": ticker,
-                "price": quote["price"]
-            })
+            stock_prices.append({"stock": ticker, "price": quote["price"]})
         except (requests.RequestException, IndexError, KeyError) as e:
             print(f"Ошибка при получении данных для {ticker}: {str(e)}")
             continue
@@ -202,4 +193,5 @@ def get_stock_prices(input_file, api_key):
     # 3. Возвращаем результат в требуемом формате
     return {"stock_prices": stock_prices}
 
-print(get_stock_prices("../user_settings.json", API_KEY_FIN_MODELING))
+
+# print(get_stock_prices("../user_settings.json", API_KEY_FIN_MODELING))
