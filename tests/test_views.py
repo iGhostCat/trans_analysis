@@ -6,25 +6,8 @@ import pandas as pd
 import pytest
 import requests
 
-from src.views import excel_to_list_of_dicts, top_transactions, transactions_to_json
+from src.views import top_transactions, transactions_to_json
 
-
-# Фикстура для тестов excel_to_list_of_dicts
-@pytest.fixture
-def sample_excel_file(tmp_path):
-    """Создает временный Excel-файл для тестов."""
-    file_path = tmp_path / "test_transactions.xlsx"
-    data = {
-        "Дата операции": ["2023-01-01 12:00:00", "2023-01-02 15:30:00"],
-        "Дата платежа": ["2023-01-01", "2023-01-02"],
-        "Номер карты": ["*1234", None],
-        "Статус": ["OK", "FAILED"],
-        "Сумма операции": [-100.50, 200.75],
-        "Валюта операции": ["RUB", "USD"],
-    }
-    df = pd.DataFrame(data)
-    df.to_excel(file_path, index=False, sheet_name="Отчет по операциям")
-    return file_path
 
 
 # Фикстура для тестов transactions_to_json

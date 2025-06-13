@@ -1,0 +1,41 @@
+2025-06-13 22:06:45,566: views.py: transactions_to_json: INFO: Вызов функции, начало работы
+2025-06-13 22:06:45,566: views.py: transactions_to_json: INFO: Обработка завершена успешно
+2025-06-13 22:06:45,567: views.py: transactions_to_json: INFO: Вызов функции, начало работы
+2025-06-13 22:06:45,568: views.py: transactions_to_json: INFO: Обработка завершена успешно
+2025-06-13 22:06:45,569: views.py: transactions_to_json: INFO: Вызов функции, начало работы
+2025-06-13 22:06:45,569: views.py: transactions_to_json: INFO: Обработка завершена успешно
+2025-06-13 22:06:45,571: views.py: top_transactions: INFO: Вызов функции, начало работы
+2025-06-13 22:06:45,572: views.py: top_transactions: INFO: Обработка завершена успешно
+2025-06-13 22:06:45,573: views.py: top_transactions: INFO: Вызов функции, начало работы
+2025-06-13 22:06:45,574: views.py: top_transactions: INFO: Обработка завершена успешно
+2025-06-13 22:06:45,576: views.py: top_transactions: INFO: Вызов функции, начало работы
+2025-06-13 22:06:45,576: views.py: top_transactions: INFO: Обработка завершена успешно
+2025-06-13 22:06:45,578: views.py: top_transactions: INFO: Вызов функции, начало работы
+2025-06-13 22:06:45,578: views.py: top_transactions: INFO: Обработка завершена успешно
+2025-06-13 22:06:45,580: views.py: top_transactions: INFO: Вызов функции, начало работы
+2025-06-13 22:06:45,581: views.py: top_transactions: INFO: Обработка завершена успешно
+2025-06-13 22:06:45,584: views.py: currency_rates_api: INFO: Вызов функции, начало работы
+2025-06-13 22:06:45,585: views.py: currency_rates_api: INFO: Обработка завершена успешно
+2025-06-13 22:06:45,588: views.py: currency_rates_api: INFO: Вызов функции, начало работы
+2025-06-13 22:06:45,588: views.py: currency_rates_api: INFO: Обработка завершена успешно
+2025-06-13 22:06:45,591: views.py: currency_rates_api: INFO: Вызов функции, начало работы
+2025-06-13 22:06:45,592: views.py: currency_rates_api: ERROR: Ошибка API недоступен
+2025-06-13 22:06:45,594: views.py: currency_rates_api: INFO: Вызов функции, начало работы
+2025-06-13 22:06:45,594: views.py: currency_rates_api: ERROR: Ошибка Expecting value: line 1 column 1 (char 0)
+2025-06-13 22:06:45,597: views.py: currency_rates_api: INFO: Вызов функции, начало работы
+2025-06-13 22:06:45,598: views.py: currency_rates_api: INFO: Обработка завершена успешно
+2025-06-13 22:06:45,602: views.py: get_stock_prices: INFO: Вызов функции, начало работы
+2025-06-13 22:06:45,603: views.py: get_stock_prices: INFO: Обработка завершена успешно
+2025-06-13 22:06:45,606: views.py: get_stock_prices: INFO: Вызов функции, начало работы
+2025-06-13 22:06:45,606: views.py: get_stock_prices: INFO: Обработка завершена успешно
+2025-06-13 22:06:45,607: views.py: get_stock_prices: INFO: Вызов функции, начало работы
+2025-06-13 22:06:45,610: views.py: get_stock_prices: INFO: Вызов функции, начало работы
+2025-06-13 22:06:45,611: views.py: get_stock_prices: ERROR: Ошибка API error
+2025-06-13 22:06:45,612: views.py: get_stock_prices: INFO: Обработка завершена успешно
+2025-06-13 22:06:45,615: views.py: get_stock_prices: INFO: Вызов функции, начало работы
+2025-06-13 22:06:45,615: views.py: get_stock_prices: ERROR: Ошибка 'price'
+2025-06-13 22:06:45,615: views.py: get_stock_prices: ERROR: Ошибка 'price'
+2025-06-13 22:06:45,615: views.py: get_stock_prices: ERROR: Ошибка 'price'
+2025-06-13 22:06:45,616: views.py: get_stock_prices: INFO: Обработка завершена успешно
+2025-06-13 22:06:45,618: views.py: get_stock_prices: INFO: Вызов функции, начало работы
+2025-06-13 22:06:45,619: views.py: get_stock_prices: INFO: Обработка завершена успешно

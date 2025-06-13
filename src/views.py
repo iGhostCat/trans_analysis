@@ -25,41 +25,7 @@ API_KEY_EXCHANGE_RATES = os.getenv("API_KEY_EXCHANGE_RATES")
 API_KEY_FIN_MODELING = os.getenv("API_KEY_FIN_MODELING")
 
 
-def excel_to_list_of_dicts(path_to_file):
-    """Функция преобразования таблицы .xlsx в список словарей"""
-    views_logger.info('Начало работы, чтение файла .xlsx')
-    df = pd.read_excel(path_to_file, sheet_name="Отчет по операциям", header=0)
-    transactions = []
-    views_logger.info("Файл успешно прочитан, начало обработки")
-    for _, row in df.iterrows():
-        transaction = {
-            "Дата операции": row["Дата операции"],
-            "Дата платежа": row["Дата платежа"],
-            "Номер карты": row["Номер карты"],
-            "Статус": row["Статус"],
-            "Сумма операции": row["Сумма операции"],
-            "Валюта операции": row["Валюта операции"],
-            "Сумма платежа": row["Сумма платежа"],
-            "Валюта платежа": row["Валюта платежа"],
-            "Кэшбэк": row["Кэшбэк"],
-            "Категория": row["Категория"],
-            "MCC": row["MCC"],
-            "Описание": row["Описание"],
-            "Бонусы (включая кэшбэк)": row["Бонусы (включая кэшбэк)"],
-            "Округление на инвесткопилку": row["Округление на инвесткопилку"],
-            "Сумма операции с округлением": row["Сумма операции с округлением"],
-        }
-        transactions.append(transaction)
-    views_logger.info("Обработка завершена успешно")
-    return transactions
-
-
-def excel_to_dataframe(path_to_file):
-    """Функция преобразования таблицы xlsx в датафрейм pandas"""
-    views_logger.info('Начало работы, чтение файла .xlsx')
-    df = pd.read_excel(path_to_file, sheet_name="Отчет по операциям", header=0)
-    views_logger.info("Обработка завершена успешно")
-    return df
+''''''
 
 
 def transactions_to_json(transactions):
@@ -80,10 +46,6 @@ def transactions_to_json(transactions):
 
     views_logger.info("Обработка завершена успешно")
     return json.dumps(transactions, ensure_ascii=False, indent=4, default=default_serializer)
-
-
-# trans_list = excel_to_list_of_dicts("../data/test_operations.xlsx")
-# print(transactions_to_json(trans_list))
 
 
 def sums_by_category(transactions_dataframe):
@@ -121,10 +83,6 @@ def sums_by_category(transactions_dataframe):
     return result
 
 
-# trans_df = excel_to_dataframe("../data/test_operations.xlsx")
-# print(sums_by_category(trans_df))
-
-
 def top_transactions(transactions_df):
     views_logger.info('Вызов функции, начало работы')
     sorted_df = transactions_df.sort_values(by="Сумма операции с округлением", ascending=False)
@@ -139,9 +97,6 @@ def top_transactions(transactions_df):
         top.append(transaction)
     views_logger.info("Обработка завершена успешно")
     return {"top_transactions": top}
-
-
-# print(top_transactions(trans_df))
 
 
 def currency_rates_api(currencies_file):
@@ -187,9 +142,6 @@ def currency_rates_api(currencies_file):
         raise Exception(f"Ошибка обработки данных: {str(e)}")
 
 
-# print(currency_rates_api("../user_settings.json"))
-
-
 def get_stock_prices(input_file, api_key):
     """
     Получает текущие цены акций из S&P500 по списку тикеров
@@ -219,6 +171,3 @@ def get_stock_prices(input_file, api_key):
     views_logger.info("Обработка завершена успешно")
     # 3. Возвращаем результат в требуемом формате
     return {"stock_prices": stock_prices}
-
-
-# print(get_stock_prices("../user_settings.json", API_KEY_FIN_MODELING))
