@@ -5,6 +5,20 @@ from datetime import datetime
 import pandas as pd
 import requests
 from dotenv import load_dotenv
+from pathlib import Path
+import logging
+
+# Создаем папку logs
+log_dir = Path(__file__).parent.parent / "logs"
+log_dir.mkdir(exist_ok=True)
+
+
+views_logger = logging.getLogger("views")
+views_file_handler = logging.FileHandler(log_dir / "views.log", encoding="utf-8", mode="w")
+views_file_formatter = logging.Formatter("%(asctime)s: %(filename)s: %(funcName)s: %(levelname)s: %(message)s")
+views_file_handler.setFormatter(views_file_formatter)
+views_logger.addHandler(views_file_handler)
+views_logger.setLevel(logging.DEBUG)
 
 load_dotenv("../.env")
 API_KEY_EXCHANGE_RATES = os.getenv("API_KEY_EXCHANGE_RATES")
@@ -13,8 +27,10 @@ API_KEY_FIN_MODELING = os.getenv("API_KEY_FIN_MODELING")
 
 def excel_to_list_of_dicts(path_to_file):
     """Функция преобразования таблицы .xlsx в список словарей"""
+    views_logger.info('Начало работы, чтение файла .xlsx')
     df = pd.read_excel(path_to_file, sheet_name="Отчет по операциям", header=0)
     transactions = []
+    views_logger.info("Файл успешно прочитан, начало обработки")
     for _, row in df.iterrows():
         transaction = {
             "Дата операции": row["Дата операции"],
@@ -34,19 +50,21 @@ def excel_to_list_of_dicts(path_to_file):
             "Сумма операции с округлением": row["Сумма операции с округлением"],
         }
         transactions.append(transaction)
-
+    views_logger.info("Обработка завершена успешно")
     return transactions
 
 
 def excel_to_dataframe(path_to_file):
     """Функция преобразования таблицы xlsx в датафрейм pandas"""
+    views_logger.info('Начало работы, чтение файла .xlsx')
     df = pd.read_excel(path_to_file, sheet_name="Отчет по операциям", header=0)
+    views_logger.info("Обработка завершена успешно")
     return df
 
 
 def transactions_to_json(transactions):
     """
-    Преобразует список транзакций в JSON-строку.
+    Преобразует список транзакций в JSON-строки.
 
     Args:
         transactions (list): Список словарей с транзакциями.
@@ -54,12 +72,13 @@ def transactions_to_json(transactions):
     Returns:
         str: JSON-строка с транзакциями.
     """
-
+    views_logger.info('Вызов функции, начало работы')
     def default_serializer(obj):
         if isinstance(obj, datetime):
             return obj.strftime("%Y-%m-%d %H:%M:%S")
         raise TypeError(f"Object of type {type(obj)} is not JSON serializable")
 
+    views_logger.info("Обработка завершена успешно")
     return json.dumps(transactions, ensure_ascii=False, indent=4, default=default_serializer)
 
 
@@ -77,7 +96,7 @@ def sums_by_category(transactions_dataframe):
     Returns:
         dict: Данные в формате {"cards": [...]}
     """
-
+    views_logger.info('Вызов функции, начало работы')
     status_filtered = transactions_dataframe[transactions_dataframe["Статус"] == "OK"].copy()
     expenses_filtered = status_filtered[status_filtered["Сумма операции"] < 0].copy()
 
@@ -98,7 +117,7 @@ def sums_by_category(transactions_dataframe):
         .rename(columns={"last_digits": "last_digits"})
         .to_dict("records")
     }
-
+    views_logger.info("Обработка завершена успешно")
     return result
 
 
@@ -107,6 +126,7 @@ def sums_by_category(transactions_dataframe):
 
 
 def top_transactions(transactions_df):
+    views_logger.info('Вызов функции, начало работы')
     sorted_df = transactions_df.sort_values(by="Сумма операции с округлением", ascending=False)
     top = []
     for _, row in sorted_df.head(5).iterrows():
@@ -117,6 +137,7 @@ def top_transactions(transactions_df):
             "description": row["Описание"],
         }
         top.append(transaction)
+    views_logger.info("Обработка завершена успешно")
     return {"top_transactions": top}
 
 
@@ -133,6 +154,7 @@ def currency_rates_api(currencies_file):
     Returns:
         list: Список словарей в формате [{"currency": "USD", "rate": 73.21}, ...]
     """
+    views_logger.info('Вызов функции, начало работы')
     try:
         # 1. Загружаем список валют из файла
         with open(currencies_file, "r") as f:
@@ -153,12 +175,15 @@ def currency_rates_api(currencies_file):
 
         # 5. Формируем результат
         result = [{"currency": code, "rate": round(v["Value"], 2)} for code, v in valutes.items()]
-
+        views_logger.info("Обработка завершена успешно")
         return result
 
     except requests.exceptions.RequestException as e:
+        views_logger.error(f"Ошибка {e}")
         raise Exception(f"Ошибка при получении курсов валют: {str(e)}")
+
     except (KeyError, json.JSONDecodeError) as e:
+        views_logger.error(f"Ошибка {e}")
         raise Exception(f"Ошибка обработки данных: {str(e)}")
 
 
@@ -171,6 +196,7 @@ def get_stock_prices(input_file, api_key):
 
     """
     # 1. Загружаем список тикеров из JSON-файла
+    views_logger.info('Вызов функции, начало работы')
     with open(input_file, "r") as f:
         data = json.load(f)
         tickers = data.get("user_stocks", [])
@@ -187,9 +213,10 @@ def get_stock_prices(input_file, api_key):
 
             stock_prices.append({"stock": ticker, "price": quote["price"]})
         except (requests.RequestException, IndexError, KeyError) as e:
+            views_logger.error(f"Ошибка {e}")
             print(f"Ошибка при получении данных для {ticker}: {str(e)}")
             continue
-
+    views_logger.info("Обработка завершена успешно")
     # 3. Возвращаем результат в требуемом формате
     return {"stock_prices": stock_prices}
 
