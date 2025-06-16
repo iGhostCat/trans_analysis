@@ -3,7 +3,7 @@ from unittest.mock import patch, mock_open
 import pandas as pd
 import json
 from datetime import datetime
-from src.services import top_categories_cashback  # Замените your_module на имя вашего модуля
+from src.services import top_categories_cashback
 
 # Тестовые данные
 TEST_DATA = {
@@ -101,3 +101,56 @@ def test_top_categories_cashback_json_format():
             "Супермаркеты": 1.5
         }
         assert data == expected_data
+
+######################################################################################
+#TESTS FOR SEARCHING PHONE NUMBERS
+import pytest
+from unittest.mock import patch, mock_open
+import json
+from src.services import search_phone_numbers  # Замените your_module на имя вашего модуля
+
+
+def test_search_phone_numbers_finds_numbers():
+    """Тестирует нахождение транзакций с телефонными номерами"""
+    test_data = {
+        "Дата операции": ["01.06.2019 22:37:18", "02.06.2019 10:15:00"],
+        "Сумма операции": [-56.0, -100.0],
+        "Категория": ["Мобильная связь", "Услуги"],
+        "Описание": [
+            "Пополнение +7 (912) 345-67-89",
+            "Оплата 8-900-123-45-67"
+        ]
+    }
+
+    with patch("pandas.read_excel") as mock_read_excel:
+        mock_read_excel.return_value = pd.DataFrame(test_data)
+
+        result = search_phone_numbers("dummy_path.xlsx")
+        data = json.loads(result)
+
+        assert len(data) == 2
+        # Проверяем структуру возвращаемых данных (группы из regex)
+        assert data[0]["phone_numbers"] == [['+7', '912', '345', '67', '89']]
+        assert data[1]["phone_numbers"] == [['8', '900', '123', '45', '67']]
+
+
+def test_search_phone_numbers_multiple_matches():
+    """Тестирует несколько номеров в одной транзакции"""
+    test_data = {
+        "Дата операции": ["01.06.2019 22:37:18"],
+        "Сумма операции": [-100.0],
+        "Категория": ["Услуги"],
+        "Описание": ["Контакты: +7(912)111-22-33, 8(900)444-55-66"]
+    }
+
+    with patch("pandas.read_excel") as mock_read_excel:
+        mock_read_excel.return_value = pd.DataFrame(test_data)
+
+        result = search_phone_numbers("dummy_path.xlsx")
+        data = json.loads(result)
+
+        assert len(data) == 1
+        assert len(data[0]["phone_numbers"]) == 2
+        # Проверяем наличие обеих групп номеров
+        assert ['+7', '912', '111', '22', '33'] in data[0]["phone_numbers"]
+        assert ['8', '900', '444', '55', '66'] in data[0]["phone_numbers"]
