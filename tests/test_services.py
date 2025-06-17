@@ -10,7 +10,7 @@ TEST_DATA = {
     "Дата операции": ["01.10.2021 12:00", "15.10.2021 18:30", "01.11.2021 09:15"],
     "Категория": ["Супермаркеты", "Рестораны", "Супермаркеты"],
     "Кэшбэк": [1.5, 2.0, 3.0],
-    "Статус": ["OK", "OK", "OK"]
+    "Статус": ["OK", "OK", "OK"],
 }
 
 
@@ -96,14 +96,12 @@ def test_top_categories_cashback_json_format():
         assert isinstance(data, dict)
 
         # Проверяем содержание данных без учета форматирования
-        expected_data = {
-            "Рестораны": 2.0,
-            "Супермаркеты": 1.5
-        }
+        expected_data = {"Рестораны": 2.0, "Супермаркеты": 1.5}
         assert data == expected_data
 
+
 ######################################################################################
-#TESTS FOR SEARCHING PHONE NUMBERS
+# TESTS FOR SEARCHING PHONE NUMBERS
 import pytest
 from unittest.mock import patch, mock_open
 import json
@@ -116,10 +114,7 @@ def test_search_phone_numbers_finds_numbers():
         "Дата операции": ["01.06.2019 22:37:18", "02.06.2019 10:15:00"],
         "Сумма операции": [-56.0, -100.0],
         "Категория": ["Мобильная связь", "Услуги"],
-        "Описание": [
-            "Пополнение +7 (912) 345-67-89",
-            "Оплата 8-900-123-45-67"
-        ]
+        "Описание": ["Пополнение +7 (912) 345-67-89", "Оплата 8-900-123-45-67"],
     }
 
     with patch("pandas.read_excel") as mock_read_excel:
@@ -130,8 +125,8 @@ def test_search_phone_numbers_finds_numbers():
 
         assert len(data) == 2
         # Проверяем структуру возвращаемых данных (группы из regex)
-        assert data[0]["phone_numbers"] == [['+7', '912', '345', '67', '89']]
-        assert data[1]["phone_numbers"] == [['8', '900', '123', '45', '67']]
+        assert data[0]["phone_numbers"] == [["+7", "912", "345", "67", "89"]]
+        assert data[1]["phone_numbers"] == [["8", "900", "123", "45", "67"]]
 
 
 def test_search_phone_numbers_multiple_matches():
@@ -140,7 +135,7 @@ def test_search_phone_numbers_multiple_matches():
         "Дата операции": ["01.06.2019 22:37:18"],
         "Сумма операции": [-100.0],
         "Категория": ["Услуги"],
-        "Описание": ["Контакты: +7(912)111-22-33, 8(900)444-55-66"]
+        "Описание": ["Контакты: +7(912)111-22-33, 8(900)444-55-66"],
     }
 
     with patch("pandas.read_excel") as mock_read_excel:
@@ -152,5 +147,5 @@ def test_search_phone_numbers_multiple_matches():
         assert len(data) == 1
         assert len(data[0]["phone_numbers"]) == 2
         # Проверяем наличие обеих групп номеров
-        assert ['+7', '912', '111', '22', '33'] in data[0]["phone_numbers"]
-        assert ['8', '900', '444', '55', '66'] in data[0]["phone_numbers"]
+        assert ["+7", "912", "111", "22", "33"] in data[0]["phone_numbers"]
+        assert ["8", "900", "444", "55", "66"] in data[0]["phone_numbers"]

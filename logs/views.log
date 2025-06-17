@@ -1,2 +1,45 @@
-2025-06-16 17:22:32,311: reports.py: spending_by_category: INFO: Вызов функции spending_by_category
-2025-06-16 17:22:32,921: reports.py: spending_by_category: INFO: Используемая дата для фильтрации: 2021-10-10 00:00:00
+2025-06-17 22:15:29,788: views.py: transactions_to_json: INFO: Вызов функции, начало работы
+2025-06-17 22:15:29,789: views.py: transactions_to_json: INFO: Обработка завершена успешно
+2025-06-17 22:15:29,791: views.py: transactions_to_json: INFO: Вызов функции, начало работы
+2025-06-17 22:15:29,791: views.py: transactions_to_json: INFO: Обработка завершена успешно
+2025-06-17 22:15:29,793: views.py: transactions_to_json: INFO: Вызов функции, начало работы
+2025-06-17 22:15:29,793: views.py: transactions_to_json: INFO: Обработка завершена успешно
+2025-06-17 22:15:29,794: views.py: transactions_to_json: INFO: Вызов функции, начало работы
+2025-06-17 22:15:29,794: views.py: transactions_to_json: INFO: Обработка завершена успешно
+2025-06-17 22:15:29,795: views.py: transactions_to_json: INFO: Вызов функции, начало работы
+2025-06-17 22:15:29,796: views.py: transactions_to_json: INFO: Обработка завершена успешно
+2025-06-17 22:15:29,797: views.py: top_transactions: INFO: Вызов функции, начало работы
+2025-06-17 22:15:29,798: views.py: top_transactions: INFO: Обработка завершена успешно
+2025-06-17 22:15:29,799: views.py: top_transactions: INFO: Вызов функции, начало работы
+2025-06-17 22:15:29,800: views.py: top_transactions: INFO: Обработка завершена успешно
+2025-06-17 22:15:29,802: views.py: top_transactions: INFO: Вызов функции, начало работы
+2025-06-17 22:15:29,802: views.py: top_transactions: INFO: Обработка завершена успешно
+2025-06-17 22:15:29,804: views.py: top_transactions: INFO: Вызов функции, начало работы
+2025-06-17 22:15:29,804: views.py: top_transactions: INFO: Обработка завершена успешно
+2025-06-17 22:15:29,806: views.py: top_transactions: INFO: Вызов функции, начало работы
+2025-06-17 22:15:29,807: views.py: top_transactions: INFO: Обработка завершена успешно
+2025-06-17 22:15:29,810: views.py: currency_rates_api: INFO: Вызов функции, начало работы
+2025-06-17 22:15:29,810: views.py: currency_rates_api: INFO: Обработка завершена успешно
+2025-06-17 22:15:29,813: views.py: currency_rates_api: INFO: Вызов функции, начало работы
+2025-06-17 22:15:29,814: views.py: currency_rates_api: INFO: Обработка завершена успешно
+2025-06-17 22:15:29,816: views.py: currency_rates_api: INFO: Вызов функции, начало работы
+2025-06-17 22:15:29,817: views.py: currency_rates_api: ERROR: Ошибка API недоступен
+2025-06-17 22:15:29,819: views.py: currency_rates_api: INFO: Вызов функции, начало работы
+2025-06-17 22:15:29,819: views.py: currency_rates_api: ERROR: Ошибка Expecting value: line 1 column 1 (char 0)
+2025-06-17 22:15:29,822: views.py: currency_rates_api: INFO: Вызов функции, начало работы
+2025-06-17 22:15:29,823: views.py: currency_rates_api: INFO: Обработка завершена успешно
+2025-06-17 22:15:29,826: views.py: get_stock_prices: INFO: Вызов функции, начало работы
+2025-06-17 22:15:29,826: views.py: get_stock_prices: INFO: Обработка завершена успешно
+2025-06-17 22:15:29,829: views.py: get_stock_prices: INFO: Вызов функции, начало работы
+2025-06-17 22:15:29,829: views.py: get_stock_prices: INFO: Обработка завершена успешно
+2025-06-17 22:15:29,831: views.py: get_stock_prices: INFO: Вызов функции, начало работы
+2025-06-17 22:15:29,833: views.py: get_stock_prices: INFO: Вызов функции, начало работы
+2025-06-17 22:15:29,834: views.py: get_stock_prices: ERROR: Ошибка API error
+2025-06-17 22:15:29,835: views.py: get_stock_prices: INFO: Обработка завершена успешно
+2025-06-17 22:15:29,838: views.py: get_stock_prices: INFO: Вызов функции, начало работы
+2025-06-17 22:15:29,838: views.py: get_stock_prices: ERROR: Ошибка 'price'
+2025-06-17 22:15:29,839: views.py: get_stock_prices: ERROR: Ошибка 'price'
+2025-06-17 22:15:29,839: views.py: get_stock_prices: ERROR: Ошибка 'price'
+2025-06-17 22:15:29,839: views.py: get_stock_prices: INFO: Обработка завершена успешно
+2025-06-17 22:15:29,841: views.py: get_stock_prices: INFO: Вызов функции, начало работы
+2025-06-17 22:15:29,842: views.py: get_stock_prices: INFO: Обработка завершена успешно

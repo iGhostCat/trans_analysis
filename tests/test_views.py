@@ -351,3 +351,4 @@ def test_get_stock_prices_missing_key():
         result = get_stock_prices("dummy_path.json", "test_api_key")
 
         assert result == {"stock_prices": []}
+
