@@ -1,8 +1,10 @@
-import pytest
-from unittest.mock import patch, mock_open
-import pandas as pd
 import json
 from datetime import datetime
+from unittest.mock import mock_open, patch
+
+import pandas as pd
+import pytest
+
 from src.services import top_categories_cashback
 
 # Тестовые данные
@@ -100,11 +102,13 @@ def test_top_categories_cashback_json_format():
         assert data == expected_data
 
 
+import json
+from unittest.mock import mock_open, patch
+
 ######################################################################################
 # TESTS FOR SEARCHING PHONE NUMBERS
 import pytest
-from unittest.mock import patch, mock_open
-import json
+
 from src.services import search_phone_numbers  # Замените your_module на имя вашего модуля
 
 

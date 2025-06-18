@@ -9,7 +9,6 @@ import requests
 from src.views import top_transactions, transactions_to_json
 
 
-
 # Фикстура для тестов transactions_to_json
 @pytest.fixture
 def sample_transactions():
@@ -351,4 +350,3 @@ def test_get_stock_prices_missing_key():
         result = get_stock_prices("dummy_path.json", "test_api_key")
 
         assert result == {"stock_prices": []}
-

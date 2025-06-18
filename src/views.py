@@ -1,12 +1,12 @@
 import json
+import logging
 import os
 from datetime import datetime
+from pathlib import Path
 
 import pandas as pd
 import requests
 from dotenv import load_dotenv
-from pathlib import Path
-import logging
 
 # Создаем папку logs
 log_dir = Path(__file__).parent.parent / "logs"
@@ -25,13 +25,12 @@ API_KEY_EXCHANGE_RATES = os.getenv("API_KEY_EXCHANGE_RATES")
 API_KEY_FIN_MODELING = os.getenv("API_KEY_FIN_MODELING")
 
 
-''''''
+""""""
 
 
-def greetings():
-    """Функция анализирует системное время на устройстве и выдаёт соответствующее приветствие"""
-    date_time_now = datetime.now()
-    current_time = date_time_now.time()
+def greetings(date_and_time):
+    """Функция принимает текущее время и выдаёт соответствующее приветствие"""
+    current_time = datetime.strptime(date_and_time, "%Y-%m-%d %H:%M:%S")
     greeting = ""
     if current_time.hour in range(4, 12):
         greeting = "Доброе утро!"
@@ -43,6 +42,7 @@ def greetings():
         greeting = "Доброй ночи!"
     return greeting
 
+
 def transactions_to_json(transactions):
     """
     Преобразует список транзакций в JSON-строки.
@@ -53,7 +53,8 @@ def transactions_to_json(transactions):
     Returns:
         str: JSON-строка с транзакциями.
     """
-    views_logger.info('Вызов функции, начало работы')
+    views_logger.info("Вызов функции, начало работы")
+
     def default_serializer(obj):
         if isinstance(obj, datetime):
             return obj.strftime("%Y-%m-%d %H:%M:%S")
@@ -73,7 +74,7 @@ def sums_by_category(transactions_dataframe):
     Returns:
         dict: Данные в формате {"cards": [...]}
     """
-    views_logger.info('Вызов функции, начало работы')
+    views_logger.info("Вызов функции, начало работы")
     status_filtered = transactions_dataframe[transactions_dataframe["Статус"] == "OK"].copy()
     expenses_filtered = status_filtered[status_filtered["Сумма операции"] < 0].copy()
 
@@ -99,7 +100,9 @@ def sums_by_category(transactions_dataframe):
 
 
 def top_transactions(transactions_df):
-    views_logger.info('Вызов функции, начало работы')
+    """Функция выводит топ-5 транзакций по сумме платежа,
+    принимает датафрейм с транзакциями, возвращает словарь"""
+    views_logger.info("Вызов функции, начало работы")
     sorted_df = transactions_df.sort_values(by="Сумма операции с округлением", ascending=False)
     top = []
     for _, row in sorted_df.head(5).iterrows():
@@ -124,7 +127,7 @@ def currency_rates_api(currencies_file):
     Returns:
         list: Список словарей в формате [{"currency": "USD", "rate": 73.21}, ...]
     """
-    views_logger.info('Вызов функции, начало работы')
+    views_logger.info("Вызов функции, начало работы")
     try:
         # 1. Загружаем список валют из файла
         with open(currencies_file, "r") as f:
@@ -163,7 +166,7 @@ def get_stock_prices(input_file, api_key):
 
     """
     # 1. Загружаем список тикеров из JSON-файла
-    views_logger.info('Вызов функции, начало работы')
+    views_logger.info("Вызов функции, начало работы")
     with open(input_file, "r") as f:
         data = json.load(f)
         tickers = data.get("user_stocks", [])
@@ -186,3 +189,28 @@ def get_stock_prices(input_file, api_key):
     views_logger.info("Обработка завершена успешно")
     # 3. Возвращаем результат в требуемом формате
     return {"stock_prices": stock_prices}
+
+
+def page_main(date_time, transactions_path):
+    transactions_df = pd.read_excel(transactions_path, sheet_name="Отчет по операциям", header=0)
+
+    # Получаем все данные
+    cards_data = sums_by_category(transactions_df)
+    transactions_data = top_transactions(transactions_df)
+    currency_data = currency_rates_api("../user_settings.json")
+    stocks_data = get_stock_prices("../user_settings.json", API_KEY_FIN_MODELING)
+
+    # Собираем финальный ответ
+    response = {
+        "greeting": greetings(date_time),
+        "cards": cards_data.get("cards", []),
+        "top_transactions": transactions_data.get("top_transactions", []),
+        "currency_rates": currency_data,
+        "stock_prices": stocks_data.get("stock_prices", []),
+    }
+
+    # Конвертируем в красиво форматированный JSON
+    return json.dumps(response, ensure_ascii=False, indent=4)
+
+
+print(page_main("2025-06-18 14:55:15", "../data/operations.xlsx"))

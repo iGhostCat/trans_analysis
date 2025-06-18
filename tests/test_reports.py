@@ -1,8 +1,10 @@
-import pytest
-from unittest.mock import patch, mock_open
-import pandas as pd
 import json
 from datetime import datetime, timedelta
+from unittest.mock import mock_open, patch
+
+import pandas as pd
+import pytest
+
 from src.reports import spending_by_category
 
 
