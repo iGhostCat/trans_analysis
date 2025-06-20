@@ -1,0 +1,5 @@
+2025-06-20 15:17:14,553: services.py: top_categories_cashback: INFO: Вызов функции, начало работы
+2025-06-20 15:17:14,554: services.py: top_categories_cashback: INFO: Конвертация дат в формат datetime
+2025-06-20 15:17:14,556: services.py: top_categories_cashback: INFO: Сортировка
+2025-06-20 15:17:14,556: services.py: top_categories_cashback: INFO: Обработка завершена успешно
+2025-06-20 15:17:14,562: services.py: search_phone_numbers: INFO: Вызов функции, начало работы
