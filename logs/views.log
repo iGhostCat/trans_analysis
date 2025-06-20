@@ -1,8 +1,5 @@
-2025-06-18 16:06:23,382: views.py: sums_by_category: INFO: Вызов функции, начало работы
-2025-06-18 16:06:23,390: views.py: sums_by_category: INFO: Обработка завершена успешно
-2025-06-18 16:06:23,390: views.py: top_transactions: INFO: Вызов функции, начало работы
-2025-06-18 16:06:23,391: views.py: top_transactions: INFO: Обработка завершена успешно
-2025-06-18 16:06:23,391: views.py: currency_rates_api: INFO: Вызов функции, начало работы
-2025-06-18 16:06:23,642: views.py: currency_rates_api: INFO: Обработка завершена успешно
-2025-06-18 16:06:23,643: views.py: get_stock_prices: INFO: Вызов функции, начало работы
-2025-06-18 16:06:26,943: views.py: get_stock_prices: INFO: Обработка завершена успешно
+2025-06-20 15:17:14,553: services.py: top_categories_cashback: INFO: Вызов функции, начало работы
+2025-06-20 15:17:14,554: services.py: top_categories_cashback: INFO: Конвертация дат в формат datetime
+2025-06-20 15:17:14,556: services.py: top_categories_cashback: INFO: Сортировка
+2025-06-20 15:17:14,556: services.py: top_categories_cashback: INFO: Обработка завершена успешно
+2025-06-20 15:17:14,562: services.py: search_phone_numbers: INFO: Вызов функции, начало работы

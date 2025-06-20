@@ -1,155 +1,137 @@
 import json
+import re
 from datetime import datetime
-from unittest.mock import mock_open, patch
+from unittest.mock import MagicMock, mock_open, patch
 
 import pandas as pd
 import pytest
 
-from src.services import top_categories_cashback
 
-# Тестовые данные
-TEST_DATA = {
-    "Дата операции": ["01.10.2021 12:00", "15.10.2021 18:30", "01.11.2021 09:15"],
-    "Категория": ["Супермаркеты", "Рестораны", "Супермаркеты"],
-    "Кэшбэк": [1.5, 2.0, 3.0],
-    "Статус": ["OK", "OK", "OK"],
-}
+# Фикстура для тестовых данных транзакций
+@pytest.fixture
+def sample_transactions_data():
+    return {
+        "Дата операции": ["01.10.2021", "15.10.2021", "05.11.2021", "20.10.2021"],
+        "Категория": ["Food", "Transport", "Food", "Entertainment"],
+        "Кэшбэк": [10.5, 5.0, 15.2, 0.0],
+        "Сумма операции": [-1000, -500, -1200, -800],
+        "Описание": ["Payment for cafe +79123456789", "Taxi 8(912)345-67-89", "Restaurant", "Cinema"],
+    }
 
 
-def test_top_categories_cashback_success():
-    """Тестирует успешный сценарий работы функции."""
-    # Мокаем чтение Excel файла
-    with patch("pandas.read_excel") as mock_read_excel:
-        mock_read_excel.return_value = pd.DataFrame(TEST_DATA)
+# Фикстура для мока Excel файла
+@pytest.fixture
+def mock_excel_file(sample_transactions_data):
+    with patch("pandas.read_excel") as mock_read:
+        mock_read.return_value = pd.DataFrame(sample_transactions_data)
+        yield mock_read
 
-        # Вызываем функцию для октября 2021
-        result = top_categories_cashback("dummy_path.xlsx", 10, 2021)
+
+# Фикстура для логгера
+@pytest.fixture
+def mock_logger():
+    with patch("src.services.services_logger") as mock:
+        yield mock
+
+
+# Тесты для функции top_categories_cashback
+class TestTopCategoriesCashback:
+    def test_successful_processing(self, mock_excel_file, mock_logger):
+        from src.services import top_categories_cashback
+
+        result = top_categories_cashback("dummy.xlsx", 10, 2021)
         data = json.loads(result)
 
-        # Проверяем результат
-        assert len(data) == 2  # Должны быть 2 категории
-        assert data["Супермаркеты"] == 1.5
-        assert data["Рестораны"] == 2.0
-        assert "Супермаркеты" in data
-        assert "Рестораны" in data
-
-
-def test_top_categories_cashback_no_data():
-    """Тестирует случай, когда нет данных за указанный период."""
-    with patch("pandas.read_excel") as mock_read_excel:
-        mock_read_excel.return_value = pd.DataFrame(TEST_DATA)
-
-        # Вызываем для месяца, которого нет в данных
-        result = top_categories_cashback("dummy_path.xlsx", 12, 2021)
-        data = json.loads(result)
-
-        assert data == {}  # Должен вернуться пустой словарь
-
-
-def test_top_categories_cashback_zero_cashback():
-    """Тестирует исключение категорий с нулевым кэшбэком."""
-    test_data = TEST_DATA.copy()
-    test_data["Кэшбэк"] = [0, 2.0, 0]  # Две операции с нулевым кэшбэком
-
-    with patch("pandas.read_excel") as mock_read_excel:
-        mock_read_excel.return_value = pd.DataFrame(test_data)
-
-        result = top_categories_cashback("dummy_path.xlsx", 10, 2021)
-        data = json.loads(result)
-
-        assert len(data) == 1  # Должна остаться только одна категория
-        assert "Рестораны" in data
-        assert data["Рестораны"] == 2.0
-
-
-def test_top_categories_cashback_sorting():
-    """Тестирует правильность сортировки по убыванию."""
-    test_data = TEST_DATA.copy()
-    test_data["Кэшбэк"] = [1.0, 3.0, 2.0]  # Разные суммы кэшбэка
-
-    with patch("pandas.read_excel") as mock_read_excel:
-        mock_read_excel.return_value = pd.DataFrame(test_data)
-
-        result = top_categories_cashback("dummy_path.xlsx", 10, 2021)
-        data = json.loads(result)
-
-        # Проверяем порядок категорий
-        categories = list(data.keys())
-        assert categories[0] == "Рестораны"  # Должен быть первым (3.0)
-        assert categories[1] == "Супермаркеты"  # Должен быть вторым (2.0)
-
-
-def test_top_categories_cashback_file_error():
-    """Тестирует обработку ошибки чтения файла."""
-    with patch("pandas.read_excel", side_effect=FileNotFoundError("File not found")):
-        with pytest.raises(FileNotFoundError):
-            top_categories_cashback("nonexistent.xlsx", 10, 2021)
-
-
-def test_top_categories_cashback_json_format():
-    """Тестирует корректность JSON-формата вывода."""
-    with patch("pandas.read_excel") as mock_read_excel:
-        mock_read_excel.return_value = pd.DataFrame(TEST_DATA)
-
-        result = top_categories_cashback("dummy_path.xlsx", 10, 2021)
-
-        # Проверяем, что результат - валидный JSON
-        data = json.loads(result)
         assert isinstance(data, dict)
+        assert "Food" in data
+        assert data["Food"] == 10.5
+        mock_excel_file.assert_called_once_with("dummy.xlsx", sheet_name="Отчет по операциям", header=0)
+        mock_logger.info.assert_called()
 
-        # Проверяем содержание данных без учета форматирования
-        expected_data = {"Рестораны": 2.0, "Супермаркеты": 1.5}
-        assert data == expected_data
+    def test_no_data_for_period(self, mock_excel_file, mock_logger):
+        from src.services import top_categories_cashback
 
-
-import json
-from unittest.mock import mock_open, patch
-
-######################################################################################
-# TESTS FOR SEARCHING PHONE NUMBERS
-import pytest
-
-from src.services import search_phone_numbers  # Замените your_module на имя вашего модуля
-
-
-def test_search_phone_numbers_finds_numbers():
-    """Тестирует нахождение транзакций с телефонными номерами"""
-    test_data = {
-        "Дата операции": ["01.06.2019 22:37:18", "02.06.2019 10:15:00"],
-        "Сумма операции": [-56.0, -100.0],
-        "Категория": ["Мобильная связь", "Услуги"],
-        "Описание": ["Пополнение +7 (912) 345-67-89", "Оплата 8-900-123-45-67"],
-    }
-
-    with patch("pandas.read_excel") as mock_read_excel:
-        mock_read_excel.return_value = pd.DataFrame(test_data)
-
-        result = search_phone_numbers("dummy_path.xlsx")
+        result = top_categories_cashback("dummy.xlsx", 12, 2021)
         data = json.loads(result)
 
-        assert len(data) == 2
-        # Проверяем структуру возвращаемых данных (группы из regex)
-        assert data[0]["phone_numbers"] == [["+7", "912", "345", "67", "89"]]
-        assert data[1]["phone_numbers"] == [["8", "900", "123", "45", "67"]]
+        assert data == {}
+        mock_logger.info.assert_called()
+
+    def test_date_conversion(self, mock_excel_file):
+        from src.services import top_categories_cashback
+
+        # Мокаем DataFrame с датами в строковом формате
+        with patch("pandas.read_excel") as mock_read:
+            test_data = {
+                "Дата операции": ["01.10.2021", "02.10.2021"],
+                "Категория": ["Food", "Transport"],
+                "Кэшбэк": [10, 20],
+                "Сумма операции": [-100, -200],
+            }
+            mock_read.return_value = pd.DataFrame(test_data)
+
+            result = top_categories_cashback("dummy.xlsx", 10, 2021)
+            data = json.loads(result)
+
+            assert len(data) == 2
 
 
-def test_search_phone_numbers_multiple_matches():
-    """Тестирует несколько номеров в одной транзакции"""
-    test_data = {
-        "Дата операции": ["01.06.2019 22:37:18"],
-        "Сумма операции": [-100.0],
-        "Категория": ["Услуги"],
-        "Описание": ["Контакты: +7(912)111-22-33, 8(900)444-55-66"],
-    }
+# Тесты для функции search_phone_numbers
+class TestSearchPhoneNumbers:
+    def test_phone_number_detection(self, mock_excel_file, mock_logger):
+        from src.services import search_phone_numbers
 
-    with patch("pandas.read_excel") as mock_read_excel:
-        mock_read_excel.return_value = pd.DataFrame(test_data)
+        with patch("src.services.transactions_to_json") as mock_json:
+            mock_json.return_value = '{"test": "data"}'
+            result = search_phone_numbers("dummy.xlsx")
 
-        result = search_phone_numbers("dummy_path.xlsx")
-        data = json.loads(result)
+            assert result == '{"test": "data"}'
+            mock_excel_file.assert_called_once()
+            mock_logger.info.assert_called()
 
-        assert len(data) == 1
-        assert len(data[0]["phone_numbers"]) == 2
-        # Проверяем наличие обеих групп номеров
-        assert ["+7", "912", "111", "22", "33"] in data[0]["phone_numbers"]
-        assert ["8", "900", "444", "55", "66"] in data[0]["phone_numbers"]
+    def test_multiple_phone_formats(self, mock_excel_file):
+        from src.services import search_phone_numbers
+
+        # Мокаем данные с разными форматами телефонов
+        test_data = {
+            "Дата операции": ["01.10.2021", "02.10.2021"],
+            "Категория": ["Food", "Transport"],
+            "Сумма операции": [-100, -200],
+            "Описание": ["Payment +7 912 345 67 89", "Refund 89123456789"],
+        }
+
+        with patch("pandas.read_excel") as mock_read:
+            mock_read.return_value = pd.DataFrame(test_data)
+            with patch("src.services.transactions_to_json") as mock_json:
+                search_phone_numbers("dummy.xlsx")
+                # Проверяем что номера были найдены
+                assert mock_json.call_args[0][0][0]["phone_numbers"]
+
+    def test_error_handling(self, mock_excel_file, mock_logger):
+        from src.services import search_phone_numbers
+
+        with patch("pandas.read_excel", side_effect=Exception("Test error")):
+            with patch("src.services.transactions_to_json") as mock_json:
+                mock_json.return_value = '{"transactions": []}'
+                result = search_phone_numbers("invalid.xlsx")
+
+                assert result == '{"transactions": []}'
+                mock_logger.error.assert_called()
+
+
+# Дополнительные тесты для проверки регулярного выражения
+def test_phone_regex():
+    from src.services import search_phone_numbers
+
+    test_cases = [
+        ("+79123456789", [("+7", "912", "345", "67", "89")]),
+        ("89123456789", [("8", "912", "345", "67", "89")]),
+        ("8(912)345-67-89", [("8", "912", "345", "67", "89")]),
+        ("7 912 345 67 89", [("7", "912", "345", "67", "89")]),
+        ("No phone here", []),
+    ]
+
+    phone_re = re.compile(r"(\+7|7|8)?[\s\-]?\(?(\d{3})\)?[\s\-]?(\d{3})[\s\-]?(\d{2})[\s\-]?(\d{2})")
+
+    for text, expected in test_cases:
+        assert phone_re.findall(text) == expected

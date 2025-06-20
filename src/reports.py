@@ -71,4 +71,4 @@ def spending_by_category(database, search_category, date_of_ops=None):
         return json.dumps({"transactions": []}, ensure_ascii=False)
 
 
-print(spending_by_category("../data/operations.xlsx", "Рестораны", datetime(2021, 10, 10)))
+# print(spending_by_category("../data/operations.xlsx", "Рестораны", datetime(2021, 10, 10)))

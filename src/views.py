@@ -192,7 +192,7 @@ def get_stock_prices(input_file, api_key):
 
 
 def page_main(date_time, transactions_path):
-    ''' Главная функция, формирующая json-ответ для страницы "Главная" с помощью ранее реализованных функций'''
+    """Главная функция, формирующая json-ответ для страницы "Главная" с помощью ранее реализованных функций"""
     transactions_df = pd.read_excel(transactions_path, sheet_name="Отчет по операциям", header=0)
 
     # Получаем все данные
@@ -214,4 +214,4 @@ def page_main(date_time, transactions_path):
     return json.dumps(response, ensure_ascii=False, indent=4)
 
 
-#print(page_main("2025-06-18 14:55:15", "../data/operations.xlsx"))
+# print(page_main("2025-06-18 14:55:15", "../data/operations.xlsx"))
